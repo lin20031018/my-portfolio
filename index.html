@@ -1,0 +1,498 @@
+<!DOCTYPE html> 
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>未來感個人網站</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    /* 基礎設定 */
+    * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+    html, body { width: 100%; height: 100%; overflow-x: hidden; background: black; font-family: 'Orbitron', sans-serif; }
+    canvas { display: block; position: fixed; top: 0; left: 0; z-index: -1; }
+    
+    /* 導覽列 nav */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 12px 0;
+      text-align: center;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    nav a {
+      color: #00ffff;
+      text-decoration: none;
+      margin: 0 20px;
+      font-size: 1.5rem;
+      transition: color 0.3s;
+    }
+    nav a:hover {
+      color: #0077ff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    
+    /* 首頁打字標題 */
+    #title, #subtitle {
+      text-align: center;
+      position: relative;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+    }
+    #title {
+      font-size: 4rem;
+      margin-top: 20vh;
+      opacity: 0;
+    }
+    #subtitle {
+      font-size: 1.5rem;
+      margin-top: 20px;
+      opacity: 0;
+      color: #ffffff;
+    }
+    
+    /* 區塊 Section 基礎 */
+    section {
+      padding: 80px 20px 50px 20px;
+      text-align: center;
+      color: white;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 1s forwards;
+    }
+    section:nth-of-type(2) { animation-delay: 2s; }
+    section:nth-of-type(3) { animation-delay: 3s; }
+    section:nth-of-type(4) { animation-delay: 4s; }
+    section:nth-of-type(5) { animation-delay: 5s; }
+    
+    @keyframes fadeInUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* 區塊標題 */
+    h2 {
+      font-size: 3rem;
+      margin-bottom: 40px;
+      color: #00ffff;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    
+    /* --- About (翻蓋卡片) --- */
+        .flip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+    }
+    .flip-card {
+      background: transparent;
+      width: 260px;
+      height: 180px;
+      perspective: 1000px;
+    }
+    .flip-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.8s;
+      transform-style: preserve-3d;
+    }
+    .flip-card:hover .flip-inner {
+      transform: rotateY(180deg);
+    }
+
+    /* 正面 (放背景照片) */
+    .flip-front {
+      background: rgba(0, 0, 0, 0.6); /* 只是預設，如果沒照片也不會破版 */
+      background-size: cover;
+      background-position: center;
+      border-radius: 20px;
+      border: 1px solid #00ffff;
+      backface-visibility: hidden;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+
+    }
+
+    /* 背面 (文字敘述) */
+    .flip-back {
+      background: rgba(0, 0, 0, 0.8);
+      border-radius: 20px;
+      border: 1px solid #00ffff;
+      transform: rotateY(180deg);
+      backface-visibility: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      font-size: 1.2rem;
+      color: white;
+      text-shadow: 0 0 10px #00ffff;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+
+    }
+        
+    /* --- Skills (技能條) --- */
+    .skill {
+      margin: 20px 0;
+    }
+    .skill p {
+      margin-bottom: 5px;
+      font-size: 1.2rem;
+      color: #00ffff;
+      text-shadow: 0 0 5px #00ffff;
+    }
+    .skill-bar {
+      width: 80%;
+      margin: 0 auto;
+      background: #333;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .skill-fill {
+      height: 30px;
+      background: linear-gradient(to right, #00ffff, #0077ff);
+      width: 0;
+      animation: grow 2s forwards;
+    }
+    @keyframes grow {
+      to { width: var(--width); }
+    }
+    
+    /* --- Portfolio (作品卡片) --- */
+    .portfolio-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+    }
+    .portfolio-card {
+      width: 260px;
+      height: 180px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid #00ffff;
+      border-radius: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .portfolio-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #00ffff;
+    }
+    
+    /* --- Modal (作品說明框) --- */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 200;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+    }
+    .modal-content {
+      background: rgba(0,0,0,0.7);
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #00ffff;
+      width: 80%;
+      max-width: 500px;
+      color: white;
+      border-radius: 20px;
+      text-align: center;
+    }
+    .close {
+      color: #00ffff;
+      font-size: 28px;
+      font-weight: bold;
+      float: right;
+      cursor: pointer;
+    }
+    .close:hover {
+      color: #ffffff;
+    }
+    #modalButton {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #00ffff;
+      color: black;
+      font-weight: bold;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    #modalButton:hover {
+      background: #0077ff;
+    }
+    
+    /* --- 聯絡資訊 Contact Info --- */
+    .contact-info {
+      margin-top: 30px;
+      font-size: 1.5rem;
+      line-height: 2.5;
+    }
+    .contact-info a {
+      color: #00ffff;
+      text-decoration: none;
+      transition: text-shadow 0.3s;
+    }
+    .contact-info a:hover {
+      text-shadow: 0 0 10px #00ffff;
+    }
+    </style>
+    
+    
+    
+</head>
+
+<body>
+
+<nav>
+  <a href="#about">About</a>
+  <a href="#skills">Skills</a>
+  <a href="#portfolio">Portfolio</a>
+  <a href="#contact">Contact</a>
+</nav>
+
+<canvas id="bg"></canvas>
+
+<div id="title"></div>
+<div id="subtitle"></div>
+
+<section id="about">
+  <h2>關於我 About</h2>
+  <div class="flip-grid">
+    <div class="flip-card">
+      <div class="flip-inner">
+        <div class="flip-front" style="background-image: url('image.png'); background-size: cover; background-position: center;"></div>
+        <div class="flip-back">
+          <p>學習前後端開發，API串接與系統設計。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip-card">
+      <div class="flip-inner">
+        <div class="flip-front" style="background-image: url('mylove.jpg'); background-size: cover; background-position: center;">
+        </div>
+        <div class="flip-back">
+          <p>我喜歡貓咪，尤其是我的小貓，他叫做櫻桃，我最愛他😽。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip-card">
+      <div class="flip-inner">
+        <div class="flip-front" style="background-image: url('IMG_2406.JPG'); background-size: cover; background-position: center;">
+        </div>
+        <div class="flip-back">
+          <p>我認為我遇到在意的事情會很直接，但在平常的待人處事中，會保持應有的體面。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section id="skills">
+  <h2>技能 Skills</h2>
+  <div class="skill">
+    <p>HTML</p>
+    <div class="skill-bar">
+      <div class="skill-fill" style="--width: 90%;"></div>
+    </div>
+  </div>
+  <div class="skill">
+    <p>CSS</p>
+    <div class="skill-bar">
+      <div class="skill-fill" style="--width: 85%;"></div>
+    </div>
+  </div>
+  <div class="skill">
+    <p>JavaScript</p>
+    <div class="skill-bar">
+      <div class="skill-fill" style="--width: 80%;"></div>
+    </div>
+  </div>
+  <div class="skill">
+    <p>Python</p>
+    <div class="skill-bar">
+      <div class="skill-fill" style="--width: 85%;"></div>
+    </div>
+  </div>
+  <div class="skill">
+    <p>Java</p>
+    <div class="skill-bar">
+      <div class="skill-fill" style="--width: 80%;"></div>
+    </div>
+  </div>
+</section>
+
+<section id="portfolio">
+  <h2>作品集 Portfolio</h2>
+  <div class="portfolio-grid">
+    <div class="portfolio-card" onclick="openModal('電商平台', '提供購物車、下單、會員等功能', 'https://github.com/lin20031018/final-project')">電商平台</div>
+    <div class="portfolio-card" onclick="openModal('超速違規舉發系統', '整合違規詳細資料，以儀表板量化', 'https://github.com/lin20031018/Speeding-Violation-Reporting-Management-System')">超速違規舉發系統</div>
+    <div class="portfolio-card" onclick="openModal('人流辨識系統', '進行人流在限定範圍的計算，並給予相關警示訊息。', 'https://github.com/lin20031018/People-flow-detection')">人流辨識系統</div>
+  </div>
+</section>
+
+<!-- Modal 彈出說明框 -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h3 id="modalTitle"></h3>
+    <p id="modalDesc"></p>
+    <button id="modalButton" target="_blank">前往 GitHub 🚀</button>
+  </div>
+</div>
+
+
+
+<section id="contact">
+  <h2>聯絡資訊 Contact</h2>
+  <div class="contact-info">
+    📧 Email: <a href="mailto:linyinshan921018@gmail.com">linyinshan921018@gmail.com</a><br>
+    📱 手機: 0966-709-176<br>
+    🌐 GitHub: <a href="https://github.com/lin20031018" target="_blank">lin20031018</a><br>
+    
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
+<script>
+  // 星空背景
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, canvas: document.getElementById('bg') });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.position.z = 5;
+
+  const starsGeometry = new THREE.BufferGeometry();
+  const starVertices = [];
+  for (let i = 0; i < 10000; i++) {
+    const x = (Math.random() - 0.5) * 2000;
+    const y = (Math.random() - 0.5) * 2000;
+    const z = (Math.random() - 0.5) * 2000;
+    starVertices.push(x, y, z);
+  }
+  starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+  const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.005 });
+  const stars = new THREE.Points(starsGeometry, starsMaterial);
+  scene.add(stars);
+
+  let mouseX = 0, mouseY = 0;
+  document.addEventListener('mousemove', (event) => {
+    mouseX = (event.clientX - window.innerWidth / 2) * 0.0001;
+    mouseY = (event.clientY - window.innerHeight / 2) * 0.0001;
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    stars.rotation.x += 0.0005 + mouseY;
+    stars.rotation.y += 0.0005 + mouseX;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // 打字機效果
+  const titleText = "Welcome to My Website";
+  const subtitleText = "歡迎探索我的網頁";
+  let titleIndex = 0, subtitleIndex = 0;
+  const titleDiv = document.getElementById('title');
+  const subtitleDiv = document.getElementById('subtitle');
+
+  function typeTitle() {
+    if (titleIndex < titleText.length) {
+      titleDiv.textContent += titleText.charAt(titleIndex);
+      titleDiv.style.opacity = 1;
+      titleIndex++;
+      setTimeout(typeTitle, 100);
+    } else {
+      setTimeout(typeSubtitle, 500);
+    }
+  }
+  function typeSubtitle() {
+    if (subtitleIndex < subtitleText.length) {
+      subtitleDiv.textContent += subtitleText.charAt(subtitleIndex);
+      subtitleDiv.style.opacity = 1;
+      subtitleIndex++;
+      setTimeout(typeSubtitle, 50);
+    }
+  }
+  typeTitle();
+  function openModal(title, description) {
+  document.getElementById('modalTitle').innerText = title;
+  document.getElementById('modalDesc').innerText = description;
+  document.getElementById('modal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+}
+
+// 點背景也可以關掉
+window.onclick = function(event) {
+  const modal = document.getElementById('modal');
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+let currentGitHubLink = '';
+
+function openModal(title, description, link) {
+  document.getElementById('modalTitle').innerText = title;
+  document.getElementById('modalDesc').innerText = description;
+  document.getElementById('modal').style.display = 'block';
+  currentGitHubLink = link;
+}
+
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+}
+
+// Modal 按鈕點擊：打開GitHub連結
+document.getElementById('modalButton').onclick = function() {
+  if (currentGitHubLink) {
+    window.open(currentGitHubLink, '_blank');
+  }
+};
+
+// 點背景也可以關掉
+window.onclick = function(event) {
+  const modal = document.getElementById('modal');
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+}
+</script>
+
+</body>
+</html>
+
